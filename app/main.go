@@ -25,7 +25,13 @@ func main() {
 		if command == EXIT {
 			break
 		}
-		fmt.Println(command + ": command not found")
+
+		if strings.HasPrefix(command, "echo") {
+			fmt.Fprintln(os.Stdout, command[5:])
+		} else {
+			fmt.Println(command + ": command not found")
+
+		}
 
 	}
 
