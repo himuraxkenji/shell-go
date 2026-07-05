@@ -24,9 +24,7 @@ func main() {
 		command = strings.TrimSpace(command)
 		if command == EXIT {
 			break
-		}
-
-		if strings.HasPrefix(command, "echo") {
+		} else if strings.HasPrefix(command, "echo") {
 			fmt.Fprintln(os.Stdout, command[5:])
 		} else {
 			fmt.Println(command + ": command not found")
