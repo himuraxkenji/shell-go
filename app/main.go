@@ -3,21 +3,14 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
 
 const (
 	EXIT = "exit"
-	ECHO = "echo"
-	TYPE = "type"
 )
-
-var builtinCommands = map[string]struct{}{
-	EXIT: {},
-	ECHO: {},
-	TYPE: {},
-}
 
 func main() {
 
@@ -26,28 +19,41 @@ func main() {
 	for {
 		fmt.Print("$ ")
 
-		command, err := reader.ReadString('\n')
+		line, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error reading input", err)
 			os.Exit(1)
 		}
-		command = strings.TrimSpace(command)
-		if strings.HasPrefix(command, TYPE) {
-			if _, ok := builtinCommands[command[5:]]; ok {
-				fmt.Fprintln(os.Stdout, command[5:]+" is a shell builtin")
-			} else {
-				fmt.Fprintln(os.Stderr, command[5:]+": not found")
-			}
 
-		} else if command == EXIT {
-			break
-		} else if strings.HasPrefix(command, ECHO) {
-			fmt.Fprintln(os.Stdout, command[5:])
-		} else {
-			fmt.Println(command + ": command not found")
-
+		tokens, err := tokenize(strings.TrimSpace(line))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+		if len(tokens) == 0 {
+			continue
 		}
 
+		name, args := tokens[0], tokens[1:]
+
+		if name == EXIT {
+			os.Exit(exitCode(args))
+		}
+
+		if fn, ok := builtins[name]; ok {
+			fn(args)
+			continue
+		}
+
+		if path, err := lookupPath(name); err == nil {
+			if err := runExternal(path, name, args); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+			}
+			continue
+		}
+		fmt.Println(name + ": command not found")
 	}
 
 }
