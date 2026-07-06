@@ -11,6 +11,7 @@ func lookupPath(name string) (string, error) {
 
 func runExternal(fullPath, name string, args []string) error {
 	cmd := exec.Command(fullPath, args...)
+	cmd.Args = append([]string{name}, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
