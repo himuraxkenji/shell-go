@@ -1,34 +1,30 @@
-[![progress-banner](https://backend.codecrafters.io/progress/shell/0917b16e-d148-4d1f-a386-48890af2c33d)](https://app.codecrafters.io/users/himuraxkenji?r=2qF)
+# shell-go
 
-This is a starting point for Go solutions to the
-["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview).
+A POSIX-style shell written in Go. It reads commands in a REPL loop, parses
+them with quote-aware tokenization (single and double quotes), runs builtin
+commands and executes external programs found in `PATH`.
 
-In this challenge, you'll build your own POSIX compliant shell that's capable of
-interpreting shell commands, running external programs and builtin commands like
-cd, pwd, echo and more. Along the way, you'll learn about shell command parsing,
-REPLs, builtin commands, and more.
+## Features
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+- Interactive REPL with `$ ` prompt
+- Builtins: `exit`, `echo`, `type`
+- Quote-aware argument parsing (`'single'` and `"double"` quotes)
+- External command execution via `PATH` lookup
 
-# Passing the first stage
+## Requirements
 
-The entry point for your `shell` implementation is in `app/main.go`. Study and
-uncomment the relevant code, then run the command below to execute the tests on
-our servers:
+- Go 1.26+
+
+## Usage
 
 ```sh
-codecrafters submit
+make run
 ```
 
-Time to move on to the next stage!
+## Development
 
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `go (1.26)` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `app/main.go`.
-1. Run `codecrafters submit` to submit your solution to CodeCrafters. Test
-   output will be streamed to your terminal.
+```sh
+make format   # gofmt all sources
+make lint     # go vet + gofmt check
+make test     # run tests
+```
