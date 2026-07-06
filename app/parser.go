@@ -31,14 +31,14 @@ func tokenize(line string) ([]string, error) {
 
 		switch state {
 		case normal:
-			switch {
-			case r == '\'':
+			switch r {
+			case '\'':
 				state = inSingle
 				hasToken = true
-			case r == '"':
+			case '"':
 				state = inDouble
 				hasToken = true
-			case r == ' ' || r == '\t':
+			case ' ', '\t':
 				flush()
 			default:
 				cur.WriteRune(r)
