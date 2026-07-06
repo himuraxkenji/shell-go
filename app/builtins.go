@@ -22,7 +22,7 @@ func exitCode(args []string) int {
 	}
 	code, err := strconv.Atoi(args[0])
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "exit: %s: numeric argument required\n", args)
+		fmt.Fprintf(os.Stderr, "exit: %s: numeric argument required\n", args[0])
 		return 2
 	}
 	return code
