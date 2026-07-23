@@ -7,7 +7,7 @@ commands and executes external programs found in `PATH`.
 ## Features
 
 - Interactive REPL with `$ ` prompt
-- Builtins: `exit`, `echo`, `type`
+- Builtins: `exit`, `echo`, `type`, `pwd`, `cd`
 - Quote-aware argument parsing (`'single'` and `"double"` quotes)
 - External command execution via `PATH` lookup
 
