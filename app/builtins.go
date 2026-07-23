@@ -13,6 +13,7 @@ func init() {
 	builtins = map[string]func(args []string){
 		"echo": builtinEcho,
 		"type": builtinType,
+		"pwd":  builtinPwd,
 	}
 }
 
@@ -30,6 +31,15 @@ func exitCode(args []string) int {
 
 func builtinEcho(args []string) {
 	fmt.Println(strings.Join(args, " "))
+}
+
+func builtinPwd(args []string) {
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "pwd:", err)
+		return
+	}
+	fmt.Println(dir)
 }
 
 func builtinType(args []string) {

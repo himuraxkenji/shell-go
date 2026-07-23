@@ -53,6 +53,45 @@ func TestBuiltinEcho(t *testing.T) {
 	})
 }
 
+func TestBuiltinPwd(t *testing.T) {
+	t.Run("prints the current working directory", func(t *testing.T) {
+		wd, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		out := captureStdout(t, func() {
+			builtinPwd(nil)
+		})
+		if got := strings.TrimSpace(out); got != wd {
+			t.Errorf("builtinPwd output = %q, want %q", got, wd)
+		}
+	})
+
+	t.Run("reflects the directory after changing it", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		origWd, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		if err := os.Chdir(tmpDir); err != nil {
+			t.Fatalf("os.Chdir failed: %v", err)
+		}
+		defer os.Chdir(origWd)
+
+		resolvedTmpDir, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+
+		out := captureStdout(t, func() {
+			builtinPwd(nil)
+		})
+		if got := strings.TrimSpace(out); got != resolvedTmpDir {
+			t.Errorf("builtinPwd output = %q, want %q", got, resolvedTmpDir)
+		}
+	})
+}
+
 func TestBuiltinType(t *testing.T) {
 	t.Run("reports a registered builtin", func(t *testing.T) {
 		out := captureStdout(t, func() {
