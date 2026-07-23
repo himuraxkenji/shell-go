@@ -32,6 +32,56 @@ func TestTokenize(t *testing.T) {
 			input:   `echo "hello`,
 			wantErr: true,
 		},
+		{
+			name:  "unquoted escaped spaces stay literal within one word",
+			input: `echo three\ \ \ spaces`,
+			want:  []string{"echo", "three   spaces"},
+		},
+		{
+			name:  "unquoted escaped space mixed with unescaped spaces",
+			input: "echo before\\   after",
+			want:  []string{"echo", "before ", "after"},
+		},
+		{
+			name:  "unquoted backslash removes special meaning of ordinary letter",
+			input: `echo test\nexample`,
+			want:  []string{"echo", "testnexample"},
+		},
+		{
+			name:  "unquoted double backslash produces one literal backslash",
+			input: `echo hello\\world`,
+			want:  []string{"echo", "hello\\world"},
+		},
+		{
+			name:  "unquoted backslash escapes single quote characters",
+			input: `echo \'hello\'`,
+			want:  []string{"echo", "'hello'"},
+		},
+		{
+			name:  "single quotes keep backslash literal",
+			input: `echo 'a\nb'`,
+			want:  []string{"echo", `a\nb`},
+		},
+		{
+			name:  "double quotes escape dollar sign",
+			input: `echo "a\$b"`,
+			want:  []string{"echo", "a$b"},
+		},
+		{
+			name:  "double quotes escape embedded double quote",
+			input: `echo "a\"b"`,
+			want:  []string{"echo", `a"b`},
+		},
+		{
+			name:  "double quotes escape backslash",
+			input: `echo "a\\b"`,
+			want:  []string{"echo", `a\b`},
+		},
+		{
+			name:  "double quotes keep backslash literal before unrelated char",
+			input: `echo "a\ab"`,
+			want:  []string{"echo", `a\ab`},
+		},
 	}
 
 	for _, tt := range tests {

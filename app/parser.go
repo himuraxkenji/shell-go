@@ -40,6 +40,14 @@ func tokenize(line string) ([]string, error) {
 				hasToken = true
 			case ' ', '\t':
 				flush()
+			case '\\':
+				hasToken = true
+				if i+1 < len(runes) {
+					i++
+					cur.WriteRune(runes[i])
+				} else {
+					cur.WriteRune(r)
+				}
 			default:
 				cur.WriteRune(r)
 				hasToken = true
@@ -53,7 +61,7 @@ func tokenize(line string) ([]string, error) {
 		case inDouble:
 			if r == '"' {
 				state = normal
-			} else if r == '\\' && i+1 < len(runes) && (runes[i+1] == '"' || runes[i+1] == '\\') {
+			} else if r == '\\' && i+1 < len(runes) && (runes[i+1] == '"' || runes[i+1] == '\\' || runes[i+1] == '$' || runes[i+1] == '`' || runes[i+1] == '\n') {
 				i++
 				cur.WriteRune(runes[i])
 			} else {
