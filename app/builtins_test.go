@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -88,6 +89,110 @@ func TestBuiltinPwd(t *testing.T) {
 		})
 		if got := strings.TrimSpace(out); got != resolvedTmpDir {
 			t.Errorf("builtinPwd output = %q, want %q", got, resolvedTmpDir)
+		}
+	})
+}
+
+func TestBuiltinCd(t *testing.T) {
+	t.Run("changes to a valid relative/absolute path", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		origWd, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		defer os.Chdir(origWd)
+
+		builtinCd([]string{tmpDir})
+
+		got, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		want, err := filepath.EvalSymlinks(tmpDir)
+		if err != nil {
+			t.Fatalf("filepath.EvalSymlinks failed: %v", err)
+		}
+		if got != want {
+			t.Errorf("cwd = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("nonexistent path prints an error and does not change cwd", func(t *testing.T) {
+		origWd, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		defer os.Chdir(origWd)
+
+		stderr := captureStderr(t, func() {
+			builtinCd([]string{"/this/path/does/not/exist/1234567890"})
+		})
+		want := "cd: /this/path/does/not/exist/1234567890: No such file or directory"
+		if !strings.Contains(stderr, want) {
+			t.Errorf("stderr = %q, want it to contain %q", stderr, want)
+		}
+
+		got, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		if got != origWd {
+			t.Errorf("cwd = %q, want unchanged %q", got, origWd)
+		}
+	})
+
+	t.Run("no args or ~ goes to home directory", func(t *testing.T) {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			t.Fatalf("os.UserHomeDir failed: %v", err)
+		}
+		origWd, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		defer os.Chdir(origWd)
+
+		builtinCd(nil)
+
+		got, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		want, err := filepath.EvalSymlinks(home)
+		if err != nil {
+			t.Fatalf("filepath.EvalSymlinks failed: %v", err)
+		}
+		if got != want {
+			t.Errorf("cwd = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("~/subpath expands to a subdir under HOME", func(t *testing.T) {
+		fakeHome := t.TempDir()
+		subDir := filepath.Join(fakeHome, "sub")
+		if err := os.Mkdir(subDir, 0o755); err != nil {
+			t.Fatalf("os.Mkdir failed: %v", err)
+		}
+		t.Setenv("HOME", fakeHome)
+
+		origWd, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		defer os.Chdir(origWd)
+
+		builtinCd([]string{"~/sub"})
+
+		got, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("os.Getwd failed: %v", err)
+		}
+		want, err := filepath.EvalSymlinks(subDir)
+		if err != nil {
+			t.Fatalf("filepath.EvalSymlinks failed: %v", err)
+		}
+		if got != want {
+			t.Errorf("cwd = %q, want %q", got, want)
 		}
 	})
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -14,6 +15,7 @@ func init() {
 		"echo": builtinEcho,
 		"type": builtinType,
 		"pwd":  builtinPwd,
+		"cd":   builtinCd,
 	}
 }
 
@@ -40,6 +42,31 @@ func builtinPwd(args []string) {
 		return
 	}
 	fmt.Println(dir)
+}
+
+func builtinCd(args []string) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "cd:", err)
+		return
+	}
+
+	arg := "~"
+	if len(args) > 0 {
+		arg = args[0]
+	}
+
+	path := arg
+	switch {
+	case path == "~":
+		path = home
+	case strings.HasPrefix(path, "~/"):
+		path = filepath.Join(home, path[2:])
+	}
+
+	if err := os.Chdir(path); err != nil {
+		fmt.Fprintf(os.Stderr, "cd: %s: No such file or directory\n", arg)
+	}
 }
 
 func builtinType(args []string) {
